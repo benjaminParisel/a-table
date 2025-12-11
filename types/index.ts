@@ -77,3 +77,25 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export interface FavoriteMenu {
+  id: string;
+  user_id: string;
+  recipe_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FavoriteMenuWithRecipes {
+  id: string;
+  user_id: string;
+  recipes: RecipeWithRelations[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IngredientSearchResult {
+  recipe: RecipeWithRelations;
+  matchedIngredients: string[];
+  matchCount: number;
+}

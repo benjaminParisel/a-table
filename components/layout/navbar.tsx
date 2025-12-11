@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, Menu, ChefHat } from "lucide-react";
+import { LogOut, Settings, Menu, ChefHat, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { APP_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,12 @@ export function Navbar({ profile }: NavbarProps) {
             >
               Menu
             </Link>
+            <Link
+              href="/search-ingredients"
+              className="transition-colors hover:text-primary"
+            >
+              Par ingrédients
+            </Link>
             {profile?.role === "admin" && (
               <Link
                 href="/admin"
@@ -105,6 +111,12 @@ export function Navbar({ profile }: NavbarProps) {
                 <Link href="/menu">
                   <ChefHat className="mr-2 h-4 w-4" />
                   Menu
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="md:hidden">
+                <Link href="/search-ingredients">
+                  <Search className="mr-2 h-4 w-4" />
+                  Par ingrédients
                 </Link>
               </DropdownMenuItem>
               {profile?.role === "admin" && (

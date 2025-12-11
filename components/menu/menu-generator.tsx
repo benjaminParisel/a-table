@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Dices, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RecipeCard } from "@/components/recipes/recipe-card";
+import { FavoriteMenuButton } from "@/components/menu/favorite-menu-button";
+import {
+  FavoriteMenuDisplay,
+  useFavoriteMenu,
+} from "@/components/menu/favorite-menu-display";
 import type { Category, RecipeWithRelations } from "@/types";
 
 interface MenuGeneratorProps {
@@ -21,6 +26,9 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
   const [generatedMenu, setGeneratedMenu] = useState<RecipeWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const { isCurrentMenuFavorite, setFavoriteRecipeIds } = useFavoriteMenu();
 
   const toggleCategory = (slug: string) => {
     setSelectedCategories((prev) =>
@@ -59,8 +67,24 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
     }
   };
 
+  const handleFavoriteSaved = useCallback(() => {
+    const recipeIds = generatedMenu.map((r) => r.id);
+    setFavoriteRecipeIds(recipeIds);
+    setRefreshKey((k) => k + 1);
+  }, [generatedMenu, setFavoriteRecipeIds]);
+
+  const handleFavoriteDeleted = useCallback(() => {
+    setFavoriteRecipeIds([]);
+    setRefreshKey((k) => k + 1);
+  }, [setFavoriteRecipeIds]);
+
+  const currentMenuRecipeIds = generatedMenu.map((r) => r.id);
+  const isMenuFavorited = isCurrentMenuFavorite(currentMenuRecipeIds);
+
   return (
     <div className="space-y-8">
+      <FavoriteMenuDisplay key={refreshKey} onDeleted={handleFavoriteDeleted} />
+
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">
           Sélectionnez les catégories à inclure :
@@ -119,7 +143,14 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
 
       {generatedMenu.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-center">Votre menu :</h2>
+          <div className="flex items-center justify-center gap-2">
+            <h2 className="text-xl font-semibold">Votre menu :</h2>
+            <FavoriteMenuButton
+              recipeIds={currentMenuRecipeIds}
+              isFavorited={isMenuFavorited}
+              onSaved={handleFavoriteSaved}
+            />
+          </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {generatedMenu.map((recipe) => (
               <div key={recipe.id} className="space-y-2">
