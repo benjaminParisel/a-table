@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { unstable_cache } from "next/cache";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { RecipeList } from "@/components/recipes/recipe-list";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
-import { getCachedCategories, getCachedTags, CACHE_TAGS } from "@/lib/cache";
+import { getCategories, getTags } from "@/lib/cache";
 import type { RecipeWithRelations, Recipe, Category, Tag } from "@/types";
 
 interface SearchParams {
@@ -27,67 +26,52 @@ export default async function RecipesPage({
 }) {
   const params = await searchParams;
 
-  // Fetch categories and tags from cache
+  // Fetch categories and tags
   const [categories, tags] = await Promise.all([
-    getCachedCategories(),
-    getCachedTags(),
+    getCategories(),
+    getTags(),
   ]);
 
-  // Cached recipe fetcher with dynamic key based on filters
-  const cacheKey = JSON.stringify({
-    search: params.search || "",
-    category: params.category || "",
-    prepTimeMax: params.prepTimeMax || "",
-  });
+  // Fetch recipes with authenticated client
+  const supabase = await createClient();
+  let query = supabase
+    .from("recipes")
+    .select(
+      `
+      *,
+      category:categories(*),
+      tags:recipe_tags(tag:tags(*))
+    `
+    )
+    .order("created_at", { ascending: false });
 
-  const getRecipes = unstable_cache(
-    async () => {
-      const supabase = await createClient();
-      let query = supabase
-        .from("recipes")
-        .select(
-          `
-          *,
-          category:categories(*),
-          tags:recipe_tags(tag:tags(*))
-        `
-        )
-        .order("created_at", { ascending: false });
+  // Apply filters
+  if (params.search) {
+    query = query.or(
+      `title.ilike.%${params.search}%,ingredients.ilike.%${params.search}%`
+    );
+  }
 
-      // Apply filters
-      if (params.search) {
-        query = query.or(
-          `title.ilike.%${params.search}%,ingredients.ilike.%${params.search}%`
-        );
-      }
+  if (params.category) {
+    const cat = categories?.find((c) => c.slug === params.category);
+    if (cat) {
+      query = query.eq("category_id", cat.id);
+    }
+  }
 
-      if (params.category) {
-        const cat = categories?.find((c) => c.slug === params.category);
-        if (cat) {
-          query = query.eq("category_id", cat.id);
-        }
-      }
+  if (params.prepTimeMax) {
+    const maxTime = parseInt(params.prepTimeMax);
+    if (maxTime === 61) {
+      query = query.gt("prep_time", 60);
+    } else {
+      query = query.lte("prep_time", maxTime);
+    }
+  }
 
-      if (params.prepTimeMax) {
-        const maxTime = parseInt(params.prepTimeMax);
-        if (maxTime === 61) {
-          query = query.gt("prep_time", 60);
-        } else {
-          query = query.lte("prep_time", maxTime);
-        }
-      }
-
-      const { data } = await query;
-      return data as RecipeData[] | null;
-    },
-    ["recipes", cacheKey],
-    { revalidate: 300, tags: [CACHE_TAGS.recipes] }
-  );
-
-  const recipesRaw = await getRecipes();
+  const { data: recipesRaw } = await query;
 
   // Transform recipes to include proper tag structure
-  let recipes: RecipeWithRelations[] = (recipesRaw || []).map((r) => ({
+  let recipes: RecipeWithRelations[] = ((recipesRaw as RecipeData[]) || []).map((r) => ({
     id: r.id,
     title: r.title,
     slug: r.slug,

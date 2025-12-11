@@ -80,9 +80,9 @@ export function FavoriteMenuDisplay({ onDeleted }: FavoriteMenuDisplayProps) {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap justify-center gap-4">
           {favoriteMenu.recipes.map((recipe) => (
-            <div key={recipe.id} className="space-y-2">
+            <div key={recipe.id} className="w-full max-w-xs space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">
                 {recipe.category.name}
               </h3>

@@ -1,4 +1,4 @@
-import { unstable_cache, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, Tag } from "@/types";
 
@@ -9,34 +9,25 @@ export const CACHE_TAGS = {
   tags: "tags",
 } as const;
 
-// Revalidate time in seconds (5 minutes)
-const REVALIDATE_TIME = 300;
+// Fetch categories (requires authentication)
+export async function getCategories(): Promise<Category[] | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .order("display_order");
+  return data as Category[] | null;
+}
 
-export const getCachedCategories = unstable_cache(
-  async () => {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("categories")
-      .select("*")
-      .order("display_order");
-    return data as Category[] | null;
-  },
-  ["categories"],
-  { revalidate: REVALIDATE_TIME, tags: [CACHE_TAGS.categories] }
-);
-
-export const getCachedTags = unstable_cache(
-  async () => {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("tags")
-      .select("*")
-      .order("name");
-    return data as Tag[] | null;
-  },
-  ["tags"],
-  { revalidate: REVALIDATE_TIME, tags: [CACHE_TAGS.tags] }
-);
+// Fetch tags (requires authentication)
+export async function getTags(): Promise<Tag[] | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tags")
+    .select("*")
+    .order("name");
+  return data as Tag[] | null;
+}
 
 // Invalidate cache functions (Next.js 16 requires a profile/expire config as second arg)
 const INVALIDATE_CONFIG = { expire: 0 };
