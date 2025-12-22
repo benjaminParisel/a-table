@@ -5,6 +5,7 @@ import type { Category, Tag, RecipeWithRelations } from "@/types";
 
 const menuSchema = z.object({
   categories: z.array(z.string()).min(1),
+  count: z.number().min(1).max(5).default(1),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,8 +33,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get random recipe for each category
-    const recipes: RecipeWithRelations[] = [];
+    // Fetch all recipes for each category once
+    const recipesByCategory = new Map<string, RecipeWithRelations[]>();
 
     for (const category of categories) {
       const { data: categoryRecipes } = await supabase
@@ -48,19 +49,17 @@ export async function POST(request: NextRequest) {
         .eq("category_id", category.id);
 
       if (categoryRecipes && categoryRecipes.length > 0) {
-        const randomIndex = Math.floor(Math.random() * categoryRecipes.length);
-        const randomRecipe = categoryRecipes[randomIndex];
-
-        recipes.push({
-          ...randomRecipe,
-          category: randomRecipe.category as Category,
-          tags: (randomRecipe.tags as { tag: Tag }[]).map((t) => t.tag),
+        const transformedRecipes = categoryRecipes.map((r) => ({
+          ...r,
+          category: r.category as Category,
+          tags: (r.tags as { tag: Tag }[]).map((t) => t.tag),
           author: null,
-        });
+        }));
+        recipesByCategory.set(category.slug, transformedRecipes);
       }
     }
 
-    // Sort by category display order
+    // Get category display order for sorting
     const { data: allCategories } = await supabase
       .from("categories")
       .select("slug, display_order");
@@ -69,14 +68,33 @@ export async function POST(request: NextRequest) {
       allCategories?.map((c) => [c.slug, c.display_order]) || []
     );
 
-    recipes.sort(
-      (a, b) =>
-        (orderMap.get(a.category.slug) || 0) -
-        (orderMap.get(b.category.slug) || 0)
-    );
+    // Generate multiple menus
+    const menus: RecipeWithRelations[][] = [];
+    const menuCount = validated.count;
+
+    for (let i = 0; i < menuCount; i++) {
+      const menu: RecipeWithRelations[] = [];
+
+      for (const category of categories) {
+        const categoryRecipes = recipesByCategory.get(category.slug);
+        if (categoryRecipes && categoryRecipes.length > 0) {
+          const randomIndex = Math.floor(Math.random() * categoryRecipes.length);
+          menu.push(categoryRecipes[randomIndex]);
+        }
+      }
+
+      // Sort by category display order
+      menu.sort(
+        (a, b) =>
+          (orderMap.get(a.category.slug) || 0) -
+          (orderMap.get(b.category.slug) || 0)
+      );
+
+      menus.push(menu);
+    }
 
     return NextResponse.json({
-      recipes,
+      menus,
       generated_at: new Date().toISOString(),
     });
   } catch (error) {

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Users } from "lucide-react";
+import { Clock, CookingPot, Users } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatTime, getTotalTime } from "@/lib/utils";
+import { formatTime } from "@/lib/utils";
 import type { RecipeWithRelations } from "@/types";
 
 interface RecipeCardProps {
@@ -11,8 +11,6 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  const totalTime = getTotalTime(recipe.prep_time, recipe.cook_time);
-
   return (
     <Link href={`/recipes/${recipe.id}`}>
       <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
@@ -40,10 +38,16 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {totalTime && (
-              <div className="flex items-center gap-1">
+            {recipe.prep_time != null && (
+              <div className="flex items-center gap-1" title="Temps de préparation">
                 <Clock className="h-4 w-4" />
-                <span>{formatTime(totalTime)}</span>
+                <span>{formatTime(recipe.prep_time)}</span>
+              </div>
+            )}
+            {recipe.cook_time != null && (
+              <div className="flex items-center gap-1" title="Temps de cuisson">
+                <CookingPot className="h-4 w-4" />
+                <span>{formatTime(recipe.cook_time)}</span>
               </div>
             )}
             {recipe.servings && (

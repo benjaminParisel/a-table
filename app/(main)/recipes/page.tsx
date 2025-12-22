@@ -12,6 +12,7 @@ interface SearchParams {
   category?: string;
   tags?: string;
   prepTimeMax?: string;
+  cookTimeMax?: string;
 }
 
 interface RecipeData extends Recipe {
@@ -60,11 +61,26 @@ export default async function RecipesPage({
   }
 
   if (params.prepTimeMax) {
-    const maxTime = parseInt(params.prepTimeMax);
-    if (maxTime === 61) {
-      query = query.gt("prep_time", 60);
-    } else {
-      query = query.lte("prep_time", maxTime);
+    if (params.prepTimeMax.endsWith("+")) {
+      // Format "60+" pour > 60 min
+      const minTime = parseInt(params.prepTimeMax.slice(0, -1));
+      query = query.gt("prep_time", minTime);
+    } else if (params.prepTimeMax.includes("-")) {
+      // Format "15-30" pour une plage
+      const [min, max] = params.prepTimeMax.split("-").map(Number);
+      query = query.gte("prep_time", min).lt("prep_time", max);
+    }
+  }
+
+  if (params.cookTimeMax) {
+    if (params.cookTimeMax.endsWith("+")) {
+      // Format "60+" pour > 60 min
+      const minTime = parseInt(params.cookTimeMax.slice(0, -1));
+      query = query.gt("cook_time", minTime);
+    } else if (params.cookTimeMax.includes("-")) {
+      // Format "15-30" pour une plage
+      const [min, max] = params.cookTimeMax.split("-").map(Number);
+      query = query.gte("cook_time", min).lt("cook_time", max);
     }
   }
 

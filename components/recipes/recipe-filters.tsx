@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { TIME_FILTERS } from "@/lib/constants";
+import { PREP_TIME_FILTERS, COOK_TIME_FILTERS } from "@/lib/constants";
 import type { Category, Tag } from "@/types";
 
 interface RecipeFiltersProps {
@@ -28,6 +28,7 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
   const category = searchParams.get("category") || "";
   const selectedTags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
   const prepTimeMax = searchParams.get("prepTimeMax") || "";
+  const cookTimeMax = searchParams.get("cookTimeMax") || "";
 
   const updateParams = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -50,7 +51,7 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
     router.push("/recipes");
   };
 
-  const hasFilters = search || category || selectedTags.length > 0 || prepTimeMax;
+  const hasFilters = search || category || selectedTags.length > 0 || prepTimeMax || cookTimeMax;
 
   return (
     <div className="space-y-4">
@@ -89,11 +90,29 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
           }
         >
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Temps" />
+            <SelectValue placeholder="Préparation" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les temps</SelectItem>
-            {TIME_FILTERS.map((filter) => (
+            <SelectItem value="all">Toute préparation</SelectItem>
+            {PREP_TIME_FILTERS.map((filter) => (
+              <SelectItem key={filter.value} value={filter.value}>
+                {filter.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={cookTimeMax}
+          onValueChange={(value) =>
+            updateParams("cookTimeMax", value === "all" ? null : value)
+          }
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Cuisson" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toute cuisson</SelectItem>
+            {COOK_TIME_FILTERS.map((filter) => (
               <SelectItem key={filter.value} value={filter.value}>
                 {filter.label}
               </SelectItem>

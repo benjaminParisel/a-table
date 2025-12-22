@@ -5,6 +5,7 @@ import { Dices, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { RecipeCard } from "@/components/recipes/recipe-card";
 import { FavoriteMenuButton } from "@/components/menu/favorite-menu-button";
 import {
@@ -23,7 +24,8 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
       .filter((c) => ["starter", "main", "dessert"].includes(c.slug))
       .map((c) => c.slug)
   );
-  const [generatedMenu, setGeneratedMenu] = useState<RecipeWithRelations[]>([]);
+  const [generatedMenus, setGeneratedMenus] = useState<RecipeWithRelations[][]>([]);
+  const [menuCount, setMenuCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -51,7 +53,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
       const res = await fetch("/api/menu/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categories: selectedCategories }),
+        body: JSON.stringify({ categories: selectedCategories, count: menuCount }),
       });
 
       if (!res.ok) {
@@ -59,7 +61,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
       }
 
       const data = await res.json();
-      setGeneratedMenu(data.recipes);
+      setGeneratedMenus(data.menus);
     } catch {
       setError("Erreur lors de la génération du menu");
     } finally {
@@ -67,19 +69,22 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
     }
   };
 
-  const handleFavoriteSaved = useCallback(() => {
-    const recipeIds = generatedMenu.map((r) => r.id);
+  const handleFavoriteSaved = useCallback((menuIndex: number) => {
+    const recipeIds = generatedMenus[menuIndex]?.map((r) => r.id) || [];
     setFavoriteRecipeIds(recipeIds);
     setRefreshKey((k) => k + 1);
-  }, [generatedMenu, setFavoriteRecipeIds]);
+  }, [generatedMenus, setFavoriteRecipeIds]);
 
   const handleFavoriteDeleted = useCallback(() => {
     setFavoriteRecipeIds([]);
     setRefreshKey((k) => k + 1);
   }, [setFavoriteRecipeIds]);
 
-  const currentMenuRecipeIds = generatedMenu.map((r) => r.id);
-  const isMenuFavorited = isCurrentMenuFavorite(currentMenuRecipeIds);
+  const getMenuRecipeIds = (menuIndex: number) =>
+    generatedMenus[menuIndex]?.map((r) => r.id) || [];
+
+  const isMenuFavorited = (menuIndex: number) =>
+    isCurrentMenuFavorite(getMenuRecipeIds(menuIndex));
 
   return (
     <div className="space-y-8">
@@ -114,6 +119,28 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
         </div>
       </div>
 
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Nombre de menus à générer : {menuCount}
+        </h2>
+        <div className="max-w-xs">
+          <Slider
+            value={[menuCount]}
+            onValueChange={(value) => setMenuCount(value[0])}
+            min={1}
+            max={5}
+            step={1}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-center">
         <Button
           onClick={generateMenu}
@@ -125,7 +152,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
               Génération...
             </>
-          ) : generatedMenu.length > 0 ? (
+          ) : generatedMenus.length > 0 ? (
             <>
               <RefreshCw className="mr-2 h-4 w-4" />
               Régénérer
@@ -133,7 +160,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
           ) : (
             <>
               <Dices className="mr-2 h-4 w-4" />
-              Générer un menu
+              Générer {menuCount > 1 ? `${menuCount} menus` : "un menu"}
             </>
           )}
         </Button>
@@ -141,26 +168,32 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
 
       {error && <p className="text-center text-destructive">{error}</p>}
 
-      {generatedMenu.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-center gap-2">
-            <h2 className="text-xl font-semibold">Votre menu :</h2>
-            <FavoriteMenuButton
-              recipeIds={currentMenuRecipeIds}
-              isFavorited={isMenuFavorited}
-              onSaved={handleFavoriteSaved}
-            />
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {generatedMenu.map((recipe) => (
-              <div key={recipe.id} className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">
-                  {recipe.category.name}
-                </h3>
-                <RecipeCard recipe={recipe} />
+      {generatedMenus.length > 0 && (
+        <div className="space-y-8">
+          {generatedMenus.map((menu, menuIndex) => (
+            <div key={menuIndex} className="space-y-4 rounded-lg border p-6">
+              <div className="flex items-center justify-center gap-2">
+                <h2 className="text-xl font-semibold">
+                  {generatedMenus.length > 1 ? `Menu ${menuIndex + 1}` : "Votre menu"}
+                </h2>
+                <FavoriteMenuButton
+                  recipeIds={getMenuRecipeIds(menuIndex)}
+                  isFavorited={isMenuFavorited(menuIndex)}
+                  onSaved={() => handleFavoriteSaved(menuIndex)}
+                />
               </div>
-            ))}
-          </div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {menu.map((recipe) => (
+                  <div key={recipe.id} className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">
+                      {recipe.category.name}
+                    </h3>
+                    <RecipeCard recipe={recipe} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
