@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, getUser, isAdmin } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { z } from "zod";
 
@@ -29,10 +29,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-  const admin = await isAdmin();
+  const user = await getUser();
 
-  if (!admin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, Menu, ChefHat, Search } from "lucide-react";
+import { LogOut, Settings, Menu, ChefHat, Search, Heart, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { APP_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,12 @@ export function Navbar({ profile }: NavbarProps) {
             >
               Par ingrédients
             </Link>
+            <Link
+              href="/favorites"
+              className="transition-colors hover:text-primary"
+            >
+              Favoris
+            </Link>
             {profile?.role === "admin" && (
               <Link
                 href="/admin"
@@ -119,6 +125,12 @@ export function Navbar({ profile }: NavbarProps) {
                   Par ingrédients
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild className="md:hidden">
+                <Link href="/favorites">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Favoris
+                </Link>
+              </DropdownMenuItem>
               {profile?.role === "admin" && (
                 <DropdownMenuItem asChild className="md:hidden">
                   <Link href="/admin">
@@ -128,6 +140,13 @@ export function Navbar({ profile }: NavbarProps) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator className="md:hidden" />
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  Mon profil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Se déconnecter

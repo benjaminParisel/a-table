@@ -1,4 +1,6 @@
 import { Navbar } from "@/components/layout/navbar";
+import { FavoritesProvider } from "@/components/recipes/favorites-provider";
+import { UserPreferencesProvider } from "@/components/profile/user-preferences-provider";
 import { getProfile } from "@/lib/supabase/server";
 
 export default async function MainLayout({
@@ -11,7 +13,11 @@ export default async function MainLayout({
   return (
     <div className="min-h-screen bg-background">
       <Navbar profile={profile} />
-      <main className="container py-6">{children}</main>
+      <UserPreferencesProvider>
+        <FavoritesProvider>
+          <main className="container py-6">{children}</main>
+        </FavoritesProvider>
+      </UserPreferencesProvider>
     </div>
   );
 }

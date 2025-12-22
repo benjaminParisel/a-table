@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,10 +26,13 @@ interface RecipeFormProps {
   recipe?: Recipe & { tags: Tag[] };
 }
 
-export function RecipeForm({ categories, tags, recipe }: RecipeFormProps) {
+export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tags, setTags] = useState<Tag[]>(initialTags);
+  const [newTagName, setNewTagName] = useState("");
+  const [addingTag, setAddingTag] = useState(false);
 
   const [formData, setFormData] = useState({
     title: recipe?.title || "",
@@ -100,6 +104,45 @@ export function RecipeForm({ categories, tags, recipe }: RecipeFormProps) {
         ? prev.tag_ids.filter((id) => id !== tagId)
         : [...prev.tag_ids, tagId],
     }));
+  };
+
+  const handleAddTag = async () => {
+    const trimmedName = newTagName.trim();
+    if (!trimmedName) return;
+
+    // Vérifier si le tag existe déjà
+    const existingTag = tags.find(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (existingTag) {
+      toast.error("Ce tag existe déjà");
+      return;
+    }
+
+    setAddingTag(true);
+    try {
+      const res = await fetch("/api/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmedName }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erreur lors de la création du tag");
+      }
+
+      const { data: newTag } = await res.json();
+      setTags((prev) => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+      setFormData((prev) => ({ ...prev, tag_ids: [...prev.tag_ids, newTag.id] }));
+      setNewTagName("");
+      toast.success("Tag créé", { description: `"${trimmedName}" a été ajouté` });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur";
+      toast.error("Erreur", { description: message });
+    } finally {
+      setAddingTag(false);
+    }
   };
 
   return (
@@ -251,7 +294,7 @@ export function RecipeForm({ categories, tags, recipe }: RecipeFormProps) {
         <CardHeader>
           <CardTitle>Tags</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4">
             {tags.map((tag) => (
               <div key={tag.id} className="flex items-center space-x-2">
@@ -265,6 +308,32 @@ export function RecipeForm({ categories, tags, recipe }: RecipeFormProps) {
                 </Label>
               </div>
             ))}
+          </div>
+          <div className="flex gap-2 items-end pt-4 border-t">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="newTag">Ajouter un nouveau tag</Label>
+              <Input
+                id="newTag"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder="Nom du tag..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddTag}
+              disabled={addingTag || !newTagName.trim()}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {addingTag ? "Ajout..." : "Ajouter"}
+            </Button>
           </div>
         </CardContent>
       </Card>

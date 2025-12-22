@@ -5,6 +5,7 @@ export interface Profile {
   email: string;
   display_name: string | null;
   role: UserRole;
+  show_images: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -98,4 +99,11 @@ export interface IngredientSearchResult {
   recipe: RecipeWithRelations;
   matchedIngredients: string[];
   matchCount: number;
+}
+
+export interface FavoriteRecipe {
+  id: string;
+  user_id: string;
+  recipe_id: string;
+  created_at: string;
 }
