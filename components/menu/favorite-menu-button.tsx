@@ -54,9 +54,10 @@ export function FavoriteMenuButton({
       onClick={handleSave}
       disabled={isLoading}
       title={isFavorited ? "Menu favori" : "Sauvegarder en favori"}
+      className="h-11 w-11 touch-manipulation active:scale-110 transition-transform"
     >
       <Star
-        className={`h-5 w-5 ${
+        className={`h-6 w-6 ${
           isFavorited ? "fill-yellow-400 text-yellow-400" : ""
         }`}
       />

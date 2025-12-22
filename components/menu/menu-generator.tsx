@@ -94,25 +94,36 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
         <h2 className="text-lg font-semibold">
           Sélectionnez les catégories à inclure :
         </h2>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
-            <div key={category.id} className="flex items-center space-x-2">
+            <div
+              key={category.id}
+              className={`flex items-center space-x-2 p-3 rounded-lg border touch-manipulation transition-colors ${
+                category.recipe_count === 0
+                  ? "opacity-50"
+                  : selectedCategories.includes(category.slug)
+                  ? "bg-primary/10 border-primary"
+                  : "active:bg-muted/50"
+              }`}
+              onClick={() => category.recipe_count > 0 && toggleCategory(category.slug)}
+            >
               <Checkbox
                 id={`cat-${category.slug}`}
                 checked={selectedCategories.includes(category.slug)}
                 onCheckedChange={() => toggleCategory(category.slug)}
                 disabled={category.recipe_count === 0}
+                className="h-5 w-5"
               />
               <Label
                 htmlFor={`cat-${category.slug}`}
-                className={`cursor-pointer ${
+                className={`cursor-pointer text-base ${
                   category.recipe_count === 0
                     ? "text-muted-foreground line-through"
                     : ""
                 }`}
               >
                 {category.name}
-                {category.recipe_count === 0 && " (aucune recette)"}
+                {category.recipe_count === 0 && " (vide)"}
               </Label>
             </div>
           ))}
@@ -123,15 +134,16 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
         <h2 className="text-lg font-semibold">
           Nombre de menus à générer : {menuCount}
         </h2>
-        <div className="max-w-xs">
+        <div className="max-w-sm">
           <Slider
             value={[menuCount]}
             onValueChange={(value) => setMenuCount(value[0])}
             min={1}
             max={5}
             step={1}
+            className="py-2"
           />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <div className="flex justify-between text-sm text-muted-foreground mt-2">
             <span>1</span>
             <span>2</span>
             <span>3</span>
@@ -141,11 +153,12 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
         </div>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center px-4">
         <Button
           onClick={generateMenu}
           disabled={loading || selectedCategories.length === 0}
           size="lg"
+          className="w-full sm:w-auto h-14 sm:h-12 text-base"
         >
           {loading ? (
             <>
@@ -171,8 +184,8 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
       {generatedMenus.length > 0 && (
         <div className="space-y-8">
           {generatedMenus.map((menu, menuIndex) => (
-            <div key={menuIndex} className="space-y-4 rounded-lg border p-6">
-              <div className="flex items-center justify-center gap-2">
+            <div key={menuIndex} className="space-y-4 rounded-lg border p-4 sm:p-6">
+              <div className="flex items-center justify-center gap-3">
                 <h2 className="text-xl font-semibold">
                   {generatedMenus.length > 1 ? `Menu ${menuIndex + 1}` : "Votre menu"}
                 </h2>
@@ -182,7 +195,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
                   onSaved={() => handleFavoriteSaved(menuIndex)}
                 />
               </div>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3">
                 {menu.map((recipe) => (
                   <div key={recipe.id} className="space-y-2">
                     <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">

@@ -34,7 +34,7 @@ export function RecipeCard({ recipe, showFavoriteButton = true }: RecipeCardProp
 
   return (
     <Link href={`/recipes/${recipe.id}`}>
-      <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className="h-full overflow-hidden transition-all hover:shadow-lg active:scale-[0.98] touch-manipulation">
         {shouldShowImageSection && (
           <div className="relative aspect-video bg-muted">
             {showImage ? (
@@ -54,12 +54,12 @@ export function RecipeCard({ recipe, showFavoriteButton = true }: RecipeCardProp
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "absolute top-2 right-2 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background",
+                  "absolute top-2 right-2 h-11 w-11 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background active:scale-110 transition-transform",
                   favorited && "text-red-500 hover:text-red-600"
                 )}
                 onClick={handleFavoriteClick}
               >
-                <Heart className={cn("h-4 w-4", favorited && "fill-current")} />
+                <Heart className={cn("h-5 w-5", favorited && "fill-current")} />
                 <span className="sr-only">
                   {favorited ? "Retirer des favoris" : "Ajouter aux favoris"}
                 </span>
@@ -82,12 +82,12 @@ export function RecipeCard({ recipe, showFavoriteButton = true }: RecipeCardProp
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-8 w-8 shrink-0",
+                  "h-11 w-11 shrink-0 active:scale-110 transition-transform",
                   favorited && "text-red-500 hover:text-red-600"
                 )}
                 onClick={handleFavoriteClick}
               >
-                <Heart className={cn("h-4 w-4", favorited && "fill-current")} />
+                <Heart className={cn("h-5 w-5", favorited && "fill-current")} />
               </Button>
             )}
           </div>

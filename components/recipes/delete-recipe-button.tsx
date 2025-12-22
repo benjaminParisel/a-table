@@ -62,9 +62,9 @@ export function DeleteRecipeButton({ recipeId, recipeName }: DeleteRecipeButtonP
           variant="outline"
           size="icon"
           disabled={loading}
-          className="text-destructive hover:text-destructive"
+          className="h-11 w-11 text-destructive hover:text-destructive touch-manipulation"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -79,12 +79,14 @@ export function DeleteRecipeButton({ recipeId, recipeName }: DeleteRecipeButtonP
             Cette action est irréversible.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Annuler</AlertDialogCancel>
+        <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+          <AlertDialogCancel disabled={loading} className="h-12 sm:h-10">
+            Annuler
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={loading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-12 sm:h-10"
           >
             {loading ? "Suppression..." : "Supprimer"}
           </AlertDialogAction>

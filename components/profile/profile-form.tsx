@@ -94,13 +94,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             />
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div
+            className="flex items-center space-x-3 p-3 -mx-3 rounded-lg active:bg-muted/50 touch-manipulation cursor-pointer"
+            onClick={() => setShowImages(!showImages)}
+          >
             <Checkbox
               id="showImages"
               checked={showImages}
               onCheckedChange={(checked) => setShowImages(checked === true)}
+              className="h-5 w-5"
             />
-            <Label htmlFor="showImages" className="cursor-pointer">
+            <Label htmlFor="showImages" className="cursor-pointer text-base flex-1">
               Afficher les images des recettes
             </Label>
           </div>
@@ -115,7 +119,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             </p>
           )}
 
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className="w-full sm:w-auto h-12 sm:h-10">
             <Save className="mr-2 h-4 w-4" />
             {isLoading ? "Enregistrement..." : "Enregistrer"}
           </Button>

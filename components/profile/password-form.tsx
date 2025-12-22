@@ -95,7 +95,11 @@ export function PasswordForm() {
             </p>
           )}
 
-          <Button type="submit" disabled={isLoading || !password || !confirmPassword}>
+          <Button
+            type="submit"
+            disabled={isLoading || !password || !confirmPassword}
+            className="w-full sm:w-auto h-12 sm:h-10"
+          >
             <Lock className="mr-2 h-4 w-4" />
             {isLoading ? "Mise à jour..." : "Changer le mot de passe"}
           </Button>

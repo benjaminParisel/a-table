@@ -295,15 +295,20 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
           <CardTitle>Tags</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-3">
             {tags.map((tag) => (
-              <div key={tag.id} className="flex items-center space-x-2">
+              <div
+                key={tag.id}
+                className="flex items-center space-x-2 p-2 -m-2 rounded-lg active:bg-muted/50 touch-manipulation"
+                onClick={() => toggleTag(tag.id)}
+              >
                 <Checkbox
                   id={`tag-${tag.id}`}
                   checked={formData.tag_ids.includes(tag.id)}
                   onCheckedChange={() => toggleTag(tag.id)}
+                  className="h-5 w-5"
                 />
-                <Label htmlFor={`tag-${tag.id}`} className="cursor-pointer">
+                <Label htmlFor={`tag-${tag.id}`} className="cursor-pointer text-base">
                   {tag.name}
                 </Label>
               </div>
@@ -340,20 +345,21 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex gap-4">
-        <Button type="submit" disabled={loading}>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          className="w-full sm:w-auto h-12 sm:h-10"
+        >
+          Annuler
+        </Button>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto h-12 sm:h-10">
           {loading
             ? "Enregistrement..."
             : recipe
             ? "Mettre à jour"
             : "Créer la recette"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          Annuler
         </Button>
       </div>
     </form>
