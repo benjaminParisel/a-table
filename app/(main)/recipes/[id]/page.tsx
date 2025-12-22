@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatTime, getTotalTime } from "@/lib/utils";
 import { DeleteRecipeButton } from "@/components/recipes/delete-recipe-button";
+import { PrintRecipeButton } from "@/components/recipes/print-recipe-button";
 import type { Recipe, Category, Tag } from "@/types";
 
 interface RecipeWithRelationsData extends Recipe {
@@ -48,13 +49,14 @@ export default async function RecipeDetailPage({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild className="h-11 touch-manipulation">
+        <Button variant="ghost" asChild className="h-11 touch-manipulation print:hidden">
           <Link href="/recipes">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Link>
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 print:hidden">
+          <PrintRecipeButton />
           <Button variant="outline" size="icon" asChild className="h-11 w-11 touch-manipulation">
             <Link href={`/recipes/${id}/edit`}>
               <Pencil className="h-5 w-5" />

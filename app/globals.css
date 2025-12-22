@@ -70,3 +70,134 @@
     text-wrap: balance;
   }
 }
+
+/* Print styles for recipe pages */
+@media print {
+  /* Reset colors for print */
+  :root {
+    --color-background: white !important;
+    --color-foreground: black !important;
+    --color-muted-foreground: #666 !important;
+  }
+
+  /* Hide navigation elements */
+  header,
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  /* Body adjustments */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Main container */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Recipe title styling */
+  h1 {
+    font-size: 24pt !important;
+    margin-bottom: 8pt !important;
+    color: black !important;
+  }
+
+  h2 {
+    font-size: 16pt !important;
+    margin-top: 16pt !important;
+    margin-bottom: 8pt !important;
+    color: black !important;
+    border-bottom: 1pt solid #ccc;
+    padding-bottom: 4pt;
+  }
+
+  /* Make grid single column for print */
+  .grid {
+    display: block !important;
+  }
+
+  /* Recipe image - smaller for print */
+  .aspect-video {
+    max-width: 300px !important;
+    height: auto !important;
+    aspect-ratio: 16/9 !important;
+    margin-bottom: 16pt !important;
+    float: right;
+    margin-left: 16pt;
+  }
+
+  /* Hide image placeholder emoji */
+  .aspect-video .text-6xl {
+    display: none !important;
+  }
+
+  /* Badge styling for print */
+  [class*="badge"] {
+    border: 1pt solid #999 !important;
+    background: transparent !important;
+    color: black !important;
+    padding: 2pt 6pt !important;
+    font-size: 9pt !important;
+  }
+
+  /* Separator */
+  [class*="separator"],
+  hr {
+    border-color: #ccc !important;
+    margin: 16pt 0 !important;
+  }
+
+  /* Ingredients and instructions */
+  .prose p {
+    margin: 4pt 0 !important;
+    color: black !important;
+  }
+
+  /* Ensure text doesn't break across pages */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  .prose, section, article {
+    page-break-inside: avoid;
+  }
+
+  /* Time and servings info */
+  .flex.items-center.gap-1 {
+    display: inline-flex !important;
+    margin-right: 16pt !important;
+  }
+
+  /* Icons in print */
+  svg {
+    width: 12pt !important;
+    height: 12pt !important;
+    stroke: black !important;
+  }
+
+  /* Links - no underline, black text */
+  a {
+    color: black !important;
+    text-decoration: none !important;
+  }
+
+  /* Clear floats after content */
+  .space-y-6::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
