@@ -300,7 +300,6 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
               <div
                 key={tag.id}
                 className="flex items-center space-x-2 p-2 -m-2 rounded-lg active:bg-muted/50 touch-manipulation"
-                onClick={() => toggleTag(tag.id)}
               >
                 <Checkbox
                   id={`tag-${tag.id}`}
