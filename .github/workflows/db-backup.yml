@@ -1,0 +1,65 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Premier jour de chaque mois à 3h du matin (UTC)
+    - cron: '0 3 1 * *'
+  workflow_dispatch: # Permet de lancer manuellement
+
+env:
+  BACKUP_RETENTION_DAYS: 90
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BACKUP_FILE="a-table-backup-${TIMESTAMP}.sql"
+
+          echo "Creating backup: ${BACKUP_FILE}"
+
+          pg_dump "$SUPABASE_DB_URL" \
+            --clean \
+            --if-exists \
+            --no-owner \
+            --no-privileges \
+            --format=plain \
+            -f "$BACKUP_FILE"
+
+          # Compress the backup
+          gzip "$BACKUP_FILE"
+
+          echo "BACKUP_FILE=${BACKUP_FILE}.gz" >> $GITHUB_ENV
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+          # Show backup size
+          ls -lh "${BACKUP_FILE}.gz"
+
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ env.TIMESTAMP }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: ${{ env.BACKUP_RETENTION_DAYS }}
+
+      - name: Backup summary
+        run: |
+          echo "## Database Backup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **File**: ${{ env.BACKUP_FILE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Size**: $(ls -lh ${{ env.BACKUP_FILE }} | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Retention**: ${{ env.BACKUP_RETENTION_DAYS }} days" >> $GITHUB_STEP_SUMMARY
