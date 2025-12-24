@@ -128,6 +128,9 @@ CREATE POLICY "Admin can manage categories" ON public.categories
 CREATE POLICY "Anyone can view tags" ON public.tags
   FOR SELECT USING (auth.role() = 'authenticated');
 
+CREATE POLICY "Authenticated users can create tags" ON public.tags
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
 CREATE POLICY "Admin can manage tags" ON public.tags
   FOR ALL USING (
     EXISTS (
@@ -223,3 +226,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- ======================
+-- GRANTS
+-- ======================
+
+-- Allow authenticated users to insert tags
+GRANT INSERT ON public.tags TO authenticated;

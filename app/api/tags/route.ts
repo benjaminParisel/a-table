@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, getUser } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
+import { invalidateTagsCache } from "@/lib/cache";
 import { z } from "zod";
 
 const tagSchema = z.object({
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    invalidateTagsCache();
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

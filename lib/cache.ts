@@ -29,23 +29,21 @@ export async function getTags(): Promise<Tag[] | null> {
   return data as Tag[] | null;
 }
 
-// Invalidate cache functions (Next.js 16 requires a profile/expire config as second arg)
-const INVALIDATE_CONFIG = { expire: 0 };
-
+// Invalidate cache functions
 export function invalidateRecipesCache() {
-  revalidateTag(CACHE_TAGS.recipes, INVALIDATE_CONFIG);
+  revalidateTag(CACHE_TAGS.recipes, { expire: 0 });
 }
 
 export function invalidateCategoriesCache() {
-  revalidateTag(CACHE_TAGS.categories, INVALIDATE_CONFIG);
+  revalidateTag(CACHE_TAGS.categories, { expire: 0 });
 }
 
 export function invalidateTagsCache() {
-  revalidateTag(CACHE_TAGS.tags, INVALIDATE_CONFIG);
+  revalidateTag(CACHE_TAGS.tags, { expire: 0 });
 }
 
 export function invalidateAllCache() {
-  revalidateTag(CACHE_TAGS.recipes, INVALIDATE_CONFIG);
-  revalidateTag(CACHE_TAGS.categories, INVALIDATE_CONFIG);
-  revalidateTag(CACHE_TAGS.tags, INVALIDATE_CONFIG);
+  revalidateTag(CACHE_TAGS.recipes, { expire: 0 });
+  revalidateTag(CACHE_TAGS.categories, { expire: 0 });
+  revalidateTag(CACHE_TAGS.tags, { expire: 0 });
 }
