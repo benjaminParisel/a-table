@@ -16,7 +16,7 @@ export default async function MainLayout({
       <Navbar profile={profile} />
       <UserPreferencesProvider>
         <FavoritesProvider>
-          <main className="container py-4 pb-24 md:py-6 md:pb-6">{children}</main>
+          <main className="container px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-6">{children}</main>
         </FavoritesProvider>
       </UserPreferencesProvider>
       <BottomNav />

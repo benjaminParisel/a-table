@@ -44,7 +44,7 @@ export function Navbar({ profile }: NavbarProps) {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         {/* Logo */}
-        <Link href="/recipes" className="flex items-center space-x-2">
+        <Link href="/recipes" className="flex items-center space-x-2 px-4 py-4">
           <ChefHat className="h-7 w-7 text-primary" />
           <span className="font-bold text-primary text-lg">{APP_NAME}</span>
         </Link>
