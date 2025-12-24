@@ -46,10 +46,14 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         router.refresh();
       } else {
         console.error("Profile update error:", data);
-        const errorText = typeof data.error === "string"
-          ? data.error
-          : JSON.stringify(data.error);
-        setMessage({ type: "error", text: errorText || "Erreur lors de la mise à jour" });
+        let errorText = "Erreur lors de la mise à jour";
+        if (typeof data.error === "string") {
+          errorText = data.error;
+        } else if (Array.isArray(data.error) && data.error.length > 0) {
+          // Handle Zod validation errors
+          errorText = data.error.map((e: { message?: string }) => e.message).join(", ");
+        }
+        setMessage({ type: "error", text: errorText });
       }
     } catch (err) {
       console.error("Profile update exception:", err);
@@ -94,17 +98,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             />
           </div>
 
-          <div
-            className="flex items-center space-x-3 p-3 -mx-3 rounded-lg active:bg-muted/50 touch-manipulation cursor-pointer"
-            onClick={() => setShowImages(!showImages)}
-          >
+          <div className="flex items-center space-x-3 p-3 -mx-3 rounded-lg active:bg-muted/50 touch-manipulation">
             <Checkbox
               id="showImages"
               checked={showImages}
               onCheckedChange={(checked) => setShowImages(checked === true)}
               className="h-5 w-5"
             />
-            <Label htmlFor="showImages" className="cursor-pointer text-base flex-1">
+            <Label
+              htmlFor="showImages"
+              className="cursor-pointer text-base flex-1 select-none"
+            >
               Afficher les images des recettes
             </Label>
           </div>
