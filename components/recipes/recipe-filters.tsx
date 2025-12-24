@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, SlidersHorizontal, ChevronUp } from "lucide-react";
+import { Search, X, SlidersHorizontal, ChevronUp, ChefHat, CookingPot } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -123,7 +123,10 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
             }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Préparation" />
+              <div className="flex items-center gap-2">
+                <ChefHat className="h-4 w-4 shrink-0" />
+                <SelectValue placeholder="Préparation" />
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toute préparation</SelectItem>
@@ -141,7 +144,10 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
             }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Cuisson" />
+              <div className="flex items-center gap-2">
+                <CookingPot className="h-4 w-4 shrink-0" />
+                <SelectValue placeholder="Cuisson" />
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toute cuisson</SelectItem>

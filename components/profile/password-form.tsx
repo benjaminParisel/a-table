@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function PasswordForm() {
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,11 +34,12 @@ export function PasswordForm() {
       const res = await fetch("/api/profile/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ currentPassword, password }),
       });
 
       if (res.ok) {
         setMessage({ type: "success", text: "Mot de passe mis à jour avec succès" });
+        setCurrentPassword("");
         setPassword("");
         setConfirmPassword("");
       } else {
@@ -61,6 +63,17 @@ export function PasswordForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Nouveau mot de passe</Label>
             <Input
@@ -97,7 +110,7 @@ export function PasswordForm() {
 
           <Button
             type="submit"
-            disabled={isLoading || !password || !confirmPassword}
+            disabled={isLoading || !currentPassword || !password || !confirmPassword}
             className="w-full sm:w-auto h-12 sm:h-10"
           >
             <Lock className="mr-2 h-4 w-4" />

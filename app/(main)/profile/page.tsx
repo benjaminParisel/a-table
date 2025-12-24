@@ -20,9 +20,9 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-6">
+        <TagsManager />
         <ProfileForm profile={profile} />
         <PasswordForm />
-        <TagsManager />
       </div>
     </div>
   );
