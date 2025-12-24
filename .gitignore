@@ -25,7 +25,7 @@ yarn-error.log*
 
 # Local env files
 .env*.local
-.env
+.env.production
 
 # Vercel
 .vercel
@@ -41,4 +41,4 @@ next-env.d.ts
 
 .playwright-mcp
 Todo.txt
-Todo.txt
+env.production
