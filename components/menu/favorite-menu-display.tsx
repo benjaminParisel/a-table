@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RecipeCard } from "@/components/recipes/recipe-card";
+import { MenuRecipeGrid } from "@/components/menu/menu-recipe-grid";
 import { toast } from "sonner";
 import type { FavoriteMenuWithRecipes } from "@/types";
 
@@ -79,17 +79,8 @@ export function FavoriteMenuDisplay({ onDeleted }: FavoriteMenuDisplayProps) {
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap justify-center gap-4">
-          {favoriteMenu.recipes.map((recipe) => (
-            <div key={recipe.id} className="w-full max-w-xs space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">
-                {recipe.category.name}
-              </h3>
-              <RecipeCard recipe={recipe} />
-            </div>
-          ))}
-        </div>
+      <CardContent className="overflow-hidden">
+        <MenuRecipeGrid recipes={favoriteMenu.recipes} />
       </CardContent>
     </Card>
   );

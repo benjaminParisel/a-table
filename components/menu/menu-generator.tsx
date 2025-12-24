@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { RecipeCard } from "@/components/recipes/recipe-card";
+import { MenuRecipeGrid } from "@/components/menu/menu-recipe-grid";
 import { FavoriteMenuButton } from "@/components/menu/favorite-menu-button";
 import {
   FavoriteMenuDisplay,
@@ -184,7 +184,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
       {generatedMenus.length > 0 && (
         <div className="space-y-8">
           {generatedMenus.map((menu, menuIndex) => (
-            <div key={menuIndex} className="space-y-4 rounded-lg border p-4 sm:p-6">
+            <div key={menuIndex} className="flex flex-col gap-6 rounded-lg border p-5 pb-7 sm:p-6 sm:pb-8 overflow-hidden">
               <div className="flex items-center justify-center gap-3">
                 <h2 className="text-xl font-semibold">
                   {generatedMenus.length > 1 ? `Menu ${menuIndex + 1}` : "Votre menu"}
@@ -195,16 +195,7 @@ export function MenuGenerator({ categories }: MenuGeneratorProps) {
                   onSaved={() => handleFavoriteSaved(menuIndex)}
                 />
               </div>
-              <div className="grid gap-4 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3">
-                {menu.map((recipe) => (
-                  <div key={recipe.id} className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase text-center">
-                      {recipe.category.name}
-                    </h3>
-                    <RecipeCard recipe={recipe} />
-                  </div>
-                ))}
-              </div>
+              <MenuRecipeGrid recipes={menu} />
             </div>
           ))}
         </div>
