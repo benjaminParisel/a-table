@@ -48,6 +48,16 @@ export interface RecipeWithRelations extends Recipe {
   author: Profile | null;
 }
 
+export interface ExtractedRecipe {
+  title: string;
+  description: string | null;
+  ingredients: string;
+  instructions: string;
+  prep_time: number | null;
+  cook_time: number | null;
+  servings: number | null;
+}
+
 export interface RecipeFilters {
   search?: string;
   category?: string;
