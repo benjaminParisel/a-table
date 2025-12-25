@@ -8,7 +8,6 @@ on:
 
 env:
   BACKUP_RETENTION_DAYS: 90
-  SUPABASE_PROJECT_REF: llyqcjptpopicsotxdva
 
 jobs:
   backup:
@@ -25,7 +24,7 @@ jobs:
 
       - name: Create backup
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL_POOLER }}
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           BACKUP_FILE="a-table-backup-${TIMESTAMP}.sql"
@@ -33,8 +32,7 @@ jobs:
           echo "Creating backup: ${BACKUP_FILE}"
 
           supabase db dump \
-            --project-ref "${{ env.SUPABASE_PROJECT_REF }}" \
-            --data-only false \
+            --db-url "$SUPABASE_DB_URL" \
             -f "$BACKUP_FILE"
 
           # Compress the backup
