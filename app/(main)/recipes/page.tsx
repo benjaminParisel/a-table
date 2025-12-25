@@ -9,11 +9,11 @@ import type { RecipeWithRelations, Recipe, Category, Tag, Profile } from "@/type
 
 interface SearchParams {
   search?: string;
-  category?: string;
+  categories?: string;
   tags?: string;
   prepTimeMax?: string;
   cookTimeMax?: string;
-  author?: string;
+  authors?: string;
 }
 
 interface RecipeData extends Recipe {
@@ -73,10 +73,13 @@ export default async function RecipesPage({
     );
   }
 
-  if (params.category) {
-    const cat = categories?.find((c) => c.slug === params.category);
-    if (cat) {
-      query = query.eq("category_id", cat.id);
+  if (params.categories) {
+    const categorySlugs = params.categories.split(",");
+    const categoryIds = categories
+      ?.filter((c) => categorySlugs.includes(c.slug))
+      .map((c) => c.id) || [];
+    if (categoryIds.length > 0) {
+      query = query.in("category_id", categoryIds);
     }
   }
 
@@ -104,8 +107,9 @@ export default async function RecipesPage({
     }
   }
 
-  if (params.author) {
-    query = query.eq("created_by", params.author);
+  if (params.authors) {
+    const authorIds = params.authors.split(",");
+    query = query.in("created_by", authorIds);
   }
 
   const { data: recipesRaw } = await query;
@@ -142,7 +146,12 @@ export default async function RecipesPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Toutes les recettes</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Toutes les recettes</h1>
+          <p className="text-sm text-muted-foreground">
+            {recipes.length} {recipes.length <= 1 ? "recette" : "recettes"}
+          </p>
+        </div>
         <Button asChild>
           <Link href="/recipes/new">
             <Plus className="mr-2 h-4 w-4" />
