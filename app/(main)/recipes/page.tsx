@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RecipeList } from "@/components/recipes/recipe-list";
 import { RecipeFilters } from "@/components/recipes/recipe-filters";
 import { getCategories, getTags } from "@/lib/cache";
-import type { RecipeWithRelations, Recipe, Category, Tag } from "@/types";
+import type { RecipeWithRelations, Recipe, Category, Tag, Profile } from "@/types";
 
 interface SearchParams {
   search?: string;
@@ -13,11 +13,13 @@ interface SearchParams {
   tags?: string;
   prepTimeMax?: string;
   cookTimeMax?: string;
+  author?: string;
 }
 
 interface RecipeData extends Recipe {
   category: Category;
   tags: { tag: Tag }[];
+  author: Profile | null;
 }
 
 export default async function RecipesPage({
@@ -35,13 +37,31 @@ export default async function RecipesPage({
 
   // Fetch recipes with authenticated client
   const supabase = await createClient();
+
+  // Fetch authors (profiles who have created recipes)
+  const { data: recipeCreators } = await supabase
+    .from("recipes")
+    .select("created_by")
+    .not("created_by", "is", null);
+
+  const creatorIds = [...new Set(recipeCreators?.map((r) => r.created_by).filter(Boolean) || [])];
+
+  const { data: authors } = creatorIds.length > 0
+    ? await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", creatorIds)
+        .order("display_name")
+    : { data: [] };
+
   let query = supabase
     .from("recipes")
     .select(
       `
       *,
       category:categories(*),
-      tags:recipe_tags(tag:tags(*))
+      tags:recipe_tags(tag:tags(*)),
+      author:profiles!recipes_created_by_fkey(id, display_name, email)
     `
     )
     .order("created_at", { ascending: false });
@@ -84,6 +104,10 @@ export default async function RecipesPage({
     }
   }
 
+  if (params.author) {
+    query = query.eq("created_by", params.author);
+  }
+
   const { data: recipesRaw } = await query;
 
   // Transform recipes to include proper tag structure
@@ -104,7 +128,7 @@ export default async function RecipesPage({
     updated_at: r.updated_at,
     category: r.category,
     tags: r.tags.map((t) => t.tag),
-    author: null,
+    author: r.author,
   }));
 
   // Filter by tags (client-side since it's a many-to-many relation)
@@ -130,6 +154,7 @@ export default async function RecipesPage({
       <RecipeFilters
         categories={categories || []}
         tags={tags || []}
+        authors={authors || []}
       />
 
       <RecipeList recipes={recipes} />

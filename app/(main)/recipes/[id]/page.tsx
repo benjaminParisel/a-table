@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Clock, Users, Pencil } from "lucide-react";
+import { ArrowLeft, Clock, Users, Pencil, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,11 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { formatTime, getTotalTime } from "@/lib/utils";
 import { DeleteRecipeButton } from "@/components/recipes/delete-recipe-button";
 import { PrintRecipeButton } from "@/components/recipes/print-recipe-button";
-import type { Recipe, Category, Tag } from "@/types";
+import type { Recipe, Category, Tag, Profile } from "@/types";
 
 interface RecipeWithRelationsData extends Recipe {
   category: Category;
   tags: { tag: Tag }[];
+  author: Pick<Profile, "id" | "display_name" | "email"> | null;
 }
 
 export default async function RecipeDetailPage({
@@ -30,7 +31,8 @@ export default async function RecipeDetailPage({
       `
       *,
       category:categories(*),
-      tags:recipe_tags(tag:tags(*))
+      tags:recipe_tags(tag:tags(*)),
+      author:profiles!recipes_created_by_fkey(id, display_name, email)
     `
     )
     .eq("id", id)
@@ -127,6 +129,13 @@ export default async function RecipeDetailPage({
 
           {recipe.description && (
             <p className="text-muted-foreground">{recipe.description}</p>
+          )}
+
+          {recipe.author && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>Par {recipe.author.display_name || recipe.author.email}</span>
+            </div>
           )}
         </div>
       </div>

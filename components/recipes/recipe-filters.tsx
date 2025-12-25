@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, SlidersHorizontal, ChevronUp, ChefHat, CookingPot } from "lucide-react";
+import { Search, X, SlidersHorizontal, ChevronUp, ChefHat, CookingPot, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +16,19 @@ import { Badge } from "@/components/ui/badge";
 import { PREP_TIME_FILTERS, COOK_TIME_FILTERS } from "@/lib/constants";
 import type { Category, Tag } from "@/types";
 
+interface Author {
+  id: string;
+  display_name: string | null;
+  email: string;
+}
+
 interface RecipeFiltersProps {
   categories: Category[];
   tags: Tag[];
+  authors: Author[];
 }
 
-export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
+export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,11 +38,13 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
   const selectedTags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
   const prepTimeMax = searchParams.get("prepTimeMax") || "";
   const cookTimeMax = searchParams.get("cookTimeMax") || "";
+  const author = searchParams.get("author") || "";
 
   const activeFiltersCount = [
     category,
     prepTimeMax,
     cookTimeMax,
+    author,
     ...selectedTags,
   ].filter(Boolean).length;
 
@@ -60,7 +69,7 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
     router.push("/recipes");
   };
 
-  const hasFilters = search || category || selectedTags.length > 0 || prepTimeMax || cookTimeMax;
+  const hasFilters = search || category || selectedTags.length > 0 || prepTimeMax || cookTimeMax || author;
 
   return (
     <div className="space-y-4">
@@ -158,6 +167,29 @@ export function RecipeFilters({ categories, tags }: RecipeFiltersProps) {
               ))}
             </SelectContent>
           </Select>
+          {authors.length > 0 && (
+            <Select
+              value={author}
+              onValueChange={(value) =>
+                updateParams("author", value === "all" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 shrink-0" />
+                  <SelectValue placeholder="Auteur" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les auteurs</SelectItem>
+                {authors.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.display_name || a.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2">

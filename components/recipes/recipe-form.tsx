@@ -18,15 +18,22 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/shared/image-upload";
-import type { Category, Tag, Recipe } from "@/types";
+import type { Category, Tag, Recipe, Profile } from "@/types";
+
+interface Author {
+  id: string;
+  display_name: string | null;
+  email: string;
+}
 
 interface RecipeFormProps {
   categories: Category[];
   tags: Tag[];
+  authors?: Author[];
   recipe?: Recipe & { tags: Tag[] };
 }
 
-export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeFormProps) {
+export function RecipeForm({ categories, tags: initialTags, authors, recipe }: RecipeFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +52,7 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
     image_url: recipe?.image_url || "",
     category_id: recipe?.category_id || "",
     tag_ids: recipe?.tags.map((t) => t.id) || [],
+    created_by: recipe?.created_by || "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +60,7 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
     setError(null);
     setLoading(true);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       title: formData.title,
       description: formData.description || null,
       ingredients: formData.ingredients || null,
@@ -64,6 +72,11 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
       category_id: formData.category_id,
       tag_ids: formData.tag_ids,
     };
+
+    // Ajouter created_by uniquement lors de l'édition si modifié
+    if (recipe && formData.created_by) {
+      payload.created_by = formData.created_by;
+    }
 
     try {
       const url = recipe ? `/api/recipes/${recipe.id}` : "/api/recipes";
@@ -185,6 +198,29 @@ export function RecipeForm({ categories, tags: initialTags, recipe }: RecipeForm
               </SelectContent>
             </Select>
           </div>
+
+          {authors && authors.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="author">Auteur</Label>
+              <Select
+                value={formData.created_by}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, created_by: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un auteur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {authors.map((author) => (
+                    <SelectItem key={author.id} value={author.id}>
+                      {author.display_name || author.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

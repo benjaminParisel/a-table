@@ -15,6 +15,7 @@ const recipeSchema = z.object({
   image_url: z.string().url().nullable().optional(),
   category_id: z.string().uuid(),
   tag_ids: z.array(z.string().uuid()).optional(),
+  created_by: z.string().uuid().optional(),
 });
 
 export async function GET(

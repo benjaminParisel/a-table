@@ -15,7 +15,7 @@ export default async function EditRecipePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [recipeResult, categoriesResult, tagsResult] = await Promise.all([
+  const [recipeResult, categoriesResult, tagsResult, profilesResult] = await Promise.all([
     supabase
       .from("recipes")
       .select(
@@ -28,11 +28,13 @@ export default async function EditRecipePage({
       .single(),
     supabase.from("categories").select("*").order("display_order"),
     supabase.from("tags").select("*").order("name"),
+    supabase.from("profiles").select("id, display_name, email").order("display_name"),
   ]);
 
   const recipe = recipeResult.data as RecipeWithTags | null;
   const categories = categoriesResult.data as Category[] | null;
   const tags = tagsResult.data as Tag[] | null;
+  const authors = profilesResult.data as { id: string; display_name: string | null; email: string }[] | null;
 
   if (!recipe) {
     notFound();
@@ -62,6 +64,7 @@ export default async function EditRecipePage({
       <RecipeForm
         categories={categories || []}
         tags={tags || []}
+        authors={authors || []}
         recipe={recipeWithTags}
       />
     </div>
