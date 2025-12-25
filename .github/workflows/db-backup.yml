@@ -17,22 +17,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Create backup
         env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL_POOLER }}
+          # URL du pooler Supabase (Session mode, port 6543)
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL_POOLER }}
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           BACKUP_FILE="a-table-backup-${TIMESTAMP}.sql"
 
           echo "Creating backup: ${BACKUP_FILE}"
 
-          supabase db dump \
-            --db-url "$SUPABASE_DB_URL" \
+          pg_dump "$DATABASE_URL" \
+            --clean \
+            --if-exists \
+            --no-owner \
+            --no-privileges \
+            --format=plain \
             -f "$BACKUP_FILE"
 
           # Compress the backup
