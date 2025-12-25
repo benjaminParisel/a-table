@@ -8,6 +8,7 @@ on:
 
 env:
   BACKUP_RETENTION_DAYS: 90
+  SUPABASE_PROJECT_REF: llyqcjptpopicsotxdva
 
 jobs:
   backup:
@@ -17,26 +18,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
       - name: Create backup
         env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           BACKUP_FILE="a-table-backup-${TIMESTAMP}.sql"
 
           echo "Creating backup: ${BACKUP_FILE}"
 
-          pg_dump "$SUPABASE_DB_URL" \
-            --clean \
-            --if-exists \
-            --no-owner \
-            --no-privileges \
-            --format=plain \
+          supabase db dump \
+            --project-ref "${{ env.SUPABASE_PROJECT_REF }}" \
+            --data-only false \
             -f "$BACKUP_FILE"
 
           # Compress the backup

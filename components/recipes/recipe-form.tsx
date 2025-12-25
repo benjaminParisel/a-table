@@ -18,7 +18,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/shared/image-upload";
-import type { Category, Tag, Recipe, Profile } from "@/types";
+import { DocumentImport } from "@/components/recipes/document-import";
+import type { Category, Tag, Recipe, ExtractedRecipe } from "@/types";
 
 interface Author {
   id: string;
@@ -119,6 +120,22 @@ export function RecipeForm({ categories, tags: initialTags, authors, recipe }: R
     }));
   };
 
+  const handleDocumentImport = (data: ExtractedRecipe) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: data.title || prev.title,
+      description: data.description || prev.description,
+      ingredients: data.ingredients || prev.ingredients,
+      instructions: data.instructions || prev.instructions,
+      prep_time: data.prep_time?.toString() || prev.prep_time,
+      cook_time: data.cook_time?.toString() || prev.cook_time,
+      servings: data.servings?.toString() || prev.servings,
+    }));
+    toast.success("Document importé", {
+      description: "Les champs ont été préremplis avec les données extraites.",
+    });
+  };
+
   const handleAddTag = async () => {
     const trimmedName = newTagName.trim();
     if (!trimmedName) return;
@@ -160,6 +177,10 @@ export function RecipeForm({ categories, tags: initialTags, authors, recipe }: R
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {!recipe && (
+        <DocumentImport onImport={handleDocumentImport} disabled={loading} />
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Informations générales</CardTitle>
