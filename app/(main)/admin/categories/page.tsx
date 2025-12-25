@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { isAdmin, createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddCategoryForm } from "@/components/categories/add-category-form";
+import { DeleteCategoryButton } from "@/components/categories/delete-category-button";
 
 interface CategoryWithCount {
   id: string;
@@ -34,6 +36,15 @@ export default async function AdminCategoriesPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Ajouter une catégorie</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AddCategoryForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Liste des catégories</CardTitle>
         </CardHeader>
         <CardContent>
@@ -51,9 +62,16 @@ export default async function AdminCategoriesPage() {
                       {category.slug}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {recipeCount} recette{recipeCount !== 1 ? "s" : ""}
-                  </p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      {recipeCount} recette{recipeCount !== 1 ? "s" : ""}
+                    </p>
+                    <DeleteCategoryButton
+                      categoryId={category.id}
+                      categoryName={category.name}
+                      recipeCount={recipeCount}
+                    />
+                  </div>
                 </div>
               );
             })}

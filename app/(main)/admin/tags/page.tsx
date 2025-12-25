@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { isAdmin, createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteTagButton } from "@/components/tags/delete-tag-button";
 
 interface TagWithCount {
   id: string;
@@ -48,9 +49,16 @@ export default async function AdminTagsPage() {
                     <p className="font-medium">{tag.name}</p>
                     <p className="text-sm text-muted-foreground">{tag.slug}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {usageCount} recette{usageCount !== 1 ? "s" : ""}
-                  </p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      {usageCount} recette{usageCount !== 1 ? "s" : ""}
+                    </p>
+                    <DeleteTagButton
+                      tagId={tag.id}
+                      tagName={tag.name}
+                      usageCount={usageCount}
+                    />
+                  </div>
                 </div>
               );
             })}
