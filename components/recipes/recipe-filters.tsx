@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, SlidersHorizontal, ChevronUp, ChefHat, CookingPot, User, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -34,85 +34,124 @@ interface RecipeFiltersProps {
   authors: Author[];
 }
 
+interface FilterState {
+  search: string;
+  categories: string[];
+  tags: string[];
+  prepTimeMax: string;
+  cookTimeMax: string;
+  authors: string[];
+}
+
 export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const search = searchParams.get("search") || "";
-  const [searchValue, setSearchValue] = useState(search);
-  const selectedCategories = searchParams.get("categories")?.split(",").filter(Boolean) || [];
-  const selectedTags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
-  const prepTimeMax = searchParams.get("prepTimeMax") || "";
-  const cookTimeMax = searchParams.get("cookTimeMax") || "";
-  const selectedAuthors = searchParams.get("authors")?.split(",").filter(Boolean) || [];
-
-  const activeFiltersCount = [
-    prepTimeMax,
-    cookTimeMax,
-    ...selectedCategories,
-    ...selectedAuthors,
-    ...selectedTags,
-  ].filter(Boolean).length;
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchValue !== search) {
-        const params = new URLSearchParams(searchParams.toString());
-        if (searchValue) {
-          params.set("search", searchValue);
-        } else {
-          params.delete("search");
-        }
-        router.push(`/recipes?${params.toString()}`);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchValue, search, searchParams, router]);
-
-  // Sync local state with URL params when navigating
-  useEffect(() => {
-    setSearchValue(search);
-  }, [search]);
-
-  const updateParams = (key: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    router.push(`/recipes?${params.toString()}`);
+  // Parse URL params
+  const urlFilters: FilterState = {
+    search: searchParams.get("search") || "",
+    categories: searchParams.get("categories")?.split(",").filter(Boolean) || [],
+    tags: searchParams.get("tags")?.split(",").filter(Boolean) || [],
+    prepTimeMax: searchParams.get("prepTimeMax") || "",
+    cookTimeMax: searchParams.get("cookTimeMax") || "",
+    authors: searchParams.get("authors")?.split(",").filter(Boolean) || [],
   };
 
+  // Local state for all filters
+  const [filters, setFilters] = useState<FilterState>(urlFilters);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const activeFiltersCount = [
+    filters.prepTimeMax,
+    filters.cookTimeMax,
+    ...filters.categories,
+    ...filters.authors,
+    ...filters.tags,
+  ].filter(Boolean).length;
+
+  // Apply filters to URL with debounce
+  const applyFilters = useCallback((newFilters: FilterState) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+
+      if (newFilters.search) params.set("search", newFilters.search);
+      if (newFilters.categories.length > 0) params.set("categories", newFilters.categories.join(","));
+      if (newFilters.tags.length > 0) params.set("tags", newFilters.tags.join(","));
+      if (newFilters.prepTimeMax) params.set("prepTimeMax", newFilters.prepTimeMax);
+      if (newFilters.cookTimeMax) params.set("cookTimeMax", newFilters.cookTimeMax);
+      if (newFilters.authors.length > 0) params.set("authors", newFilters.authors.join(","));
+
+      const queryString = params.toString();
+      router.push(queryString ? `/recipes?${queryString}` : "/recipes");
+    }, 400);
+  }, [router]);
+
+  // Update filter and trigger debounced apply
+  const updateFilter = useCallback(<K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+    setFilters(prev => {
+      const newFilters = { ...prev, [key]: value };
+      applyFilters(newFilters);
+      return newFilters;
+    });
+  }, [applyFilters]);
+
+  // Sync local state with URL params when navigating (back/forward)
+  useEffect(() => {
+    setFilters(urlFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
   const toggleTag = (tagSlug: string) => {
-    const newTags = selectedTags.includes(tagSlug)
-      ? selectedTags.filter((t) => t !== tagSlug)
-      : [...selectedTags, tagSlug];
-    updateParams("tags", newTags.length > 0 ? newTags.join(",") : null);
+    const newTags = filters.tags.includes(tagSlug)
+      ? filters.tags.filter((t) => t !== tagSlug)
+      : [...filters.tags, tagSlug];
+    updateFilter("tags", newTags);
   };
 
   const toggleCategory = (categorySlug: string) => {
-    const newCategories = selectedCategories.includes(categorySlug)
-      ? selectedCategories.filter((c) => c !== categorySlug)
-      : [...selectedCategories, categorySlug];
-    updateParams("categories", newCategories.length > 0 ? newCategories.join(",") : null);
+    const newCategories = filters.categories.includes(categorySlug)
+      ? filters.categories.filter((c) => c !== categorySlug)
+      : [...filters.categories, categorySlug];
+    updateFilter("categories", newCategories);
   };
 
   const toggleAuthor = (authorId: string) => {
-    const newAuthors = selectedAuthors.includes(authorId)
-      ? selectedAuthors.filter((a) => a !== authorId)
-      : [...selectedAuthors, authorId];
-    updateParams("authors", newAuthors.length > 0 ? newAuthors.join(",") : null);
+    const newAuthors = filters.authors.includes(authorId)
+      ? filters.authors.filter((a) => a !== authorId)
+      : [...filters.authors, authorId];
+    updateFilter("authors", newAuthors);
   };
 
   const clearFilters = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setFilters({
+      search: "",
+      categories: [],
+      tags: [],
+      prepTimeMax: "",
+      cookTimeMax: "",
+      authors: [],
+    });
     router.push("/recipes");
   };
 
-  const hasFilters = search || selectedCategories.length > 0 || selectedTags.length > 0 || prepTimeMax || cookTimeMax || selectedAuthors.length > 0;
+  const hasFilters = filters.search || filters.categories.length > 0 || filters.tags.length > 0 || filters.prepTimeMax || filters.cookTimeMax || filters.authors.length > 0;
 
   return (
     <div className="space-y-4">
@@ -122,8 +161,8 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Rechercher une recette..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            value={filters.search}
+            onChange={(e) => updateFilter("search", e.target.value)}
             className="pl-9"
           />
         </div>
@@ -154,11 +193,11 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full sm:w-[180px] justify-between">
                 <span className="truncate">
-                  {selectedCategories.length === 0
+                  {filters.categories.length === 0
                     ? "Catégories"
-                    : selectedCategories.length === 1
-                      ? categories.find((c) => c.slug === selectedCategories[0])?.name
-                      : `${selectedCategories.length} catégories`}
+                    : filters.categories.length === 1
+                      ? categories.find((c) => c.slug === filters.categories[0])?.name
+                      : `${filters.categories.length} catégories`}
                 </span>
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -167,7 +206,7 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
               {categories.map((cat) => (
                 <DropdownMenuCheckboxItem
                   key={cat.id}
-                  checked={selectedCategories.includes(cat.slug)}
+                  checked={filters.categories.includes(cat.slug)}
                   onCheckedChange={() => toggleCategory(cat.slug)}
                 >
                   {cat.name}
@@ -176,9 +215,9 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
             </DropdownMenuContent>
           </DropdownMenu>
           <Select
-            value={prepTimeMax}
+            value={filters.prepTimeMax || "all"}
             onValueChange={(value) =>
-              updateParams("prepTimeMax", value === "all" ? null : value)
+              updateFilter("prepTimeMax", value === "all" ? "" : value)
             }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -197,9 +236,9 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
             </SelectContent>
           </Select>
           <Select
-            value={cookTimeMax}
+            value={filters.cookTimeMax || "all"}
             onValueChange={(value) =>
-              updateParams("cookTimeMax", value === "all" ? null : value)
+              updateFilter("cookTimeMax", value === "all" ? "" : value)
             }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -224,12 +263,12 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
                   <div className="flex items-center gap-2 truncate">
                     <User className="h-4 w-4 shrink-0" />
                     <span className="truncate">
-                      {selectedAuthors.length === 0
+                      {filters.authors.length === 0
                         ? "Auteurs"
-                        : selectedAuthors.length === 1
-                          ? authors.find((a) => a.id === selectedAuthors[0])?.display_name ||
-                            authors.find((a) => a.id === selectedAuthors[0])?.email
-                          : `${selectedAuthors.length} auteurs`}
+                        : filters.authors.length === 1
+                          ? authors.find((a) => a.id === filters.authors[0])?.display_name ||
+                            authors.find((a) => a.id === filters.authors[0])?.email
+                          : `${filters.authors.length} auteurs`}
                     </span>
                   </div>
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -239,7 +278,7 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
                 {authors.map((a) => (
                   <DropdownMenuCheckboxItem
                     key={a.id}
-                    checked={selectedAuthors.includes(a.id)}
+                    checked={filters.authors.includes(a.id)}
                     onCheckedChange={() => toggleAuthor(a.id)}
                   >
                     {a.display_name || a.email}
@@ -254,7 +293,7 @@ export function RecipeFilters({ categories, tags, authors }: RecipeFiltersProps)
           {tags.map((tag) => (
             <Badge
               key={tag.id}
-              variant={selectedTags.includes(tag.slug) ? "default" : "outline"}
+              variant={filters.tags.includes(tag.slug) ? "default" : "outline"}
               className="cursor-pointer"
               onClick={() => toggleTag(tag.slug)}
             >

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, isAdmin } from "@/lib/supabase/server";
+import { createAdminClient, isAdmin } from "@/lib/supabase/server";
 import { invalidateTagsCache } from "@/lib/cache";
 
 export async function DELETE(
@@ -13,11 +13,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const supabase = await createClient();
+  // Utiliser le client admin pour bypasser les RLS
+  const supabaseAdmin = createAdminClient();
 
   // La suppression du tag supprimera automatiquement les associations
   // dans recipe_tags grâce à ON DELETE CASCADE
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("tags")
     .delete()
     .eq("id", id);
