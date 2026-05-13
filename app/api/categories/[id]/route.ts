@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, isAdmin } from "@/lib/supabase/server";
+import { createAdminClient, isAdmin } from "@/lib/supabase/server";
 import { invalidateCategoriesCache } from "@/lib/cache";
 
 export async function DELETE(
@@ -13,10 +13,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const supabase = await createClient();
+  // Utiliser le client admin pour bypasser les RLS
+  const supabaseAdmin = createAdminClient();
 
   // Vérifier si la catégorie est utilisée par des recettes
-  const { count } = await supabase
+  const { count } = await supabaseAdmin
     .from("recipes")
     .select("*", { count: "exact", head: true })
     .eq("category_id", id);
@@ -28,7 +29,7 @@ export async function DELETE(
     );
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("categories")
     .delete()
     .eq("id", id);
